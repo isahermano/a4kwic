@@ -1,0 +1,5 @@
+WORD                 PARA CONTEXT
+====                 ==== =======
+a                       1 Ita
+for                     1 Itfor
+nice                    1 Itnice

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html><head></head><body style="color: rgb(32, 33, 34); font-family: undefined;"><h1 id="comp-2160-assignment-4" style="font-family: Helvetica, Arial, sans-serif; font-size: x-large; font-weight: bold; text-align: center; width: 100%; padding: 12px; background-color: #ffa080; color: #000080; margin: 0; border-bottom: thin solid;" align="center" width="100%" bgcolor="#FFA080">COMP 2160 Assignment 4</h1>
+<h2 id="material-covered" style="font-family: Helvetica, Arial, sans-serif; font-size: large; font-weight: bold; border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #000080;">Material covered:</h2>
+<ul>
+<li>more contracts + unit testing</li>
+<li>separate compilation and makefiles</li>
+<li>writing a command line application</li>
+</ul>
+<h2 id="notes" style="font-family: Helvetica, Arial, sans-serif; font-size: large; font-weight: bold; border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #000080;">Notes:</h2>
+<ul>
+<li>You must follow the programming standards and best practices not doing so will result in a loss of marks. For this assignment, respect <strong>all</strong> standards and practices.</li>
+<li>The C code for each question will be in its own directory. Include the question number in the filename that contains the main program.</li>
+<li>You must fill in an honesty declaration <strong>for this assignment before</strong> you submit your solution.</li>
+<li>Your assignment code must be handed in electronically on the CS Linux system (aviary) as the assignment <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">fall2023-a4</code>; see the <a>hand-in guidelines</a> for details. No other assignment submission method will be accepted.</li>
+<li>The C code you submit must compile and run on that system without warnings or errors.</li>
+</ul>
+<h2 id="question-1-kwic" style="font-family: Helvetica, Arial, sans-serif; font-size: large; font-weight: bold; border-bottom-width: 2px; border-bottom-style: solid; border-bottom-color: #000080;">Question 1: KWIC</h2>
+<div style="text-align: center;"><em>This question is worth 100% of the assignment mark.</em></div>
+<p>A <a href="https://en.wikipedia.org/wiki/Key_Word_in_Context">KWIC or Key Word In Context</a> is a type of index for a text document that lists the indexed words along with their location and the context they are found in; that is, the text on either side of each word. This will be called the <strong>context string</strong>. We will use the <strong>multimap</strong> data structure from the previous assignment to produce the index (keys) and the locations and context strings (values).</p>
+<p>The goal is to build a complete UNIX-style command line application that can be run from a terminal. It will generate the index from a text file, using options that are given on the command line when the application is run. It can optionally read another text file containing a <strong>stop list</strong>: a list of "stop words" that will not be placed in the index. The main program can also accept values for the maximum index size (maximum number of keys in the multimap), the maximum frequency of an index entry, and the maximum entry length (the purpose of these two values are described below).</p>
+<h3 id="organization" style="font-size: medium; font-variant: small-caps; text-decoration: underline; color: #000080;">Organization</h3>
+<p>The code will be organized into several source (<code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">.c</code>) and header (<code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">.h</code>) files for separate compilation. You will be given a main program that processes command-line arguments when the program is run, and passes the information to your function to produce the index. There will also be another <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">.c</code> file that contains a main program that you will write to execute tests on the relevant portions of the solution.</p>
+<p>Overall you must write at least the following source and header files:</p>
+<ul>
+<li>a source and a header file for the multimap;</li>
+<li>a source and a header file for the KWIC processing code;</li>
+<li>a source file containing the given main program (<code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">a4_main.c</code>);</li>
+<li>a source file that runs the Assignment 3 tests on the multimap;</li>
+<li>a source file that runs new Assignment 4 tests on the multimap;</li>
+<li>a source file that runs tests on the functions for your KWIC; and</li>
+<li>a source and header file that is used for the code that all the test programs have in common.</li>
+</ul>
+<p>Write additional source and/or header files as required.</p>
+<h3 id="the-multimap" style="font-size: medium; font-variant: small-caps; text-decoration: underline; color: #000080;">The multimap</h3>
+<p>The Multimap we wrote in the previous assignment is missing one critical feature that will be needed to produce the index. We have to be able to iterate over all of the keys in our multimap; that is, the words in the index. Add the following functions to the Multimap interface:</p>
+<div class="sourceCode" id="cb1" style="overflow: visible; margin: 1em 0;">
+<pre class="sourceCode c" style="background-color: #ffffd8; border-top: dotted thin black; border-bottom: dotted thin black; margin-right: 20px; margin-left: 20px; overflow: visible; margin: 0; padding: 1em 0.5em 1em 0.5em;" bgcolor="#FFFFD8"><code class="sourceCode c" style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: transparent; white-space: pre; overflow: visible; position: relative;"><span id="cb1-1" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// Using these functions together will allow you iterate over the keys in the</span></span>
+<span id="cb1-2" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// multimap, in the order that they are stored (that is, sorted).</span></span>
+<span id="cb1-3" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// They can be used as follows:</span></span>
+<span id="cb1-5" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// char key[MAX_KEY_LENGTH];</span></span>
+<span id="cb1-7" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// if (mm_get_first_key(mm, key, MAX_KEY_LENGTH) &gt; 0) {</span></span>
+<span id="cb1-8" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">//   do {</span></span>
+<span id="cb1-9" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">//     // process the key</span></span>
+<span id="cb1-10" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">//   } while (mm_get_next_key(mm, key, MAX_KEY_LENGTH) &gt; 0);</span></span>
+<span id="cb1-11" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// }</span></span>
+<span id="cb1-12" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// Consider what happens if mm_remove_key() is called (possibly more than</span></span>
+<span id="cb1-14" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// once) as part of processing a key.</span></span>
+<span id="cb1-15" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// Copy the first key string in the multimap into the array char *key.</span></span>
+<span id="cb1-17" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// It will copy at most length-1 chars, always followed by \0.</span></span>
+<span id="cb1-18" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// Returns -1 on error, 0 if there were no more keys, or 1 on success.</span></span>
+<span id="cb1-19" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// If 0 or -1 are returned, then the contents of key are unchanged.</span></span>
+<span id="cb1-20" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="dt" style="color: #902000;">int</span> mm_get_first_key<span class="op" style="color: #666;">(</span>Multimap <span class="op" style="color: #666;">*</span>mm<span class="op" style="color: #666;">,</span> <span class="dt" style="color: #902000;">char</span> <span class="op" style="color: #666;">*</span>key<span class="op" style="color: #666;">,</span> <span class="dt" style="color: #902000;">int</span> length<span class="op" style="color: #666;">);</span></span>
+<span id="cb1-21" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// Same as above, except it copies the next key following a call to either</span></span>
+<span id="cb1-23" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co" style="color: #60a0b0; font-style: italic;">// mm_get_first_key or mm_get_next_key.</span></span>
+<span id="cb1-24" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a><span class="dt" style="color: #902000;">int</span> mm_get_next_key<span class="op" style="color: #666;">(</span>Multimap <span class="op" style="color: #666;">*</span>mm<span class="op" style="color: #666;">,</span> <span class="dt" style="color: #902000;">char</span> <span class="op" style="color: #666;">*</span>key<span class="op" style="color: #666;">,</span> <span class="dt" style="color: #902000;">int</span> length<span class="op" style="color: #666;">);</span></span></code></pre>
+</div>
+<p>These functions should be completely implemented, with contracts and thorough testing.</p>
+<h3 id="the-kwic" style="font-size: medium; font-variant: small-caps; text-decoration: underline; color: #000080;">The KWIC</h3>
+<p>The KWIC will be indexed by paragraphs, where a <strong>paragraph</strong> is defined as text on one or more lines from the text file, separated by one or more blank lines. Paragraphs will be identified by a paragraph number, counting from 1 for the first paragraph. A <strong>word</strong> in a paragraph is defined as any sequence of one or more word characters, separated by one or more non-word characters. A word character is alphabetic or numeric (<code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">man isalnum</code>) or a dash <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">-</code> or an apostrophe <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">'</code>.</p>
+<p>For example, in the following text:</p>
+<pre style="background-color: #e0f8e0; border-top: dotted thin black; border-bottom: dotted thin black; margin-right: 20px; margin-left: 20px; padding: 1em 0.5em 1em 0.5em;" bgcolor="#FFFFD0"><code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: transparent; white-space: pre-wrap;">It   wasn't the "best", of times,
+'twas the... worst-of-times.</code></pre>
+<p>the words are: <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">it</code>, <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">wasn't</code>, <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">the</code>, <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">best</code>, <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">of</code>, <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">times</code>, <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">'twas</code>, and <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">worst-of-times</code> and it is a single paragraph since there are no blank lines in between the lines.</p>
+<p>This is the KWIC building algorithm:</p>
+<ol type="1">
+<li>Read an entire paragraph from the input text file at a time into a string, even if it spans multiple lines in the text file.</li>
+<li>For each word in the paragraph:
+<ol type="1">
+<li>Check if the word is in the stop list. If it is, do not process it further, and go on to the next word.</li>
+<li>Otherwise, subtract the length of the word from the maximum entry length and divide it by two. This is the amount of characters allowed on either side of the word for context. Build a context string by fitting as many words as possible, from before the word, and after the word, with a single space between them, without exceeding the amount characters allowed on each side. See the examples below.</li>
+<li>Using the word as the key, and the paragraph number and the string you built as the value, add it to the index multimap.</li>
+</ol>
+</li>
+<li>Post-process the multimap:
+<ol type="1">
+<li>Count the total number of values for all keys, and for each key, if its frequency (number of values / total number of values) is greater than the maximum frequency, <strong>remove</strong> it from the multimap.</li>
+<li><em><span style="color: rgb(207, 42, 39);"><s>(Another step may be added here)</s></span> </em>No more steps.</li>
+</ol>
+</li>
+<li>Print the multimap, neatly, as a KWIC index, using the example below as a model. This should be done using your <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">mm_get_first_key</code> and <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">mm_get_next_key</code> functions, not by modifying <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">mm_print</code> (which is meant for debugging and not neat output).</li>
+</ol>
+<p>For example, given the text above, and using the default parameters for creating the KWIC, the index may look something like this:</p>
+<pre style="background-color: #e0f8e0; border-top: dotted thin black; border-bottom: dotted thin black; margin-right: 20px; margin-left: 20px; padding: 1em 0.5em 1em 0.5em;" bgcolor="#E0F8E0"><code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: transparent; white-space: pre-wrap;">WORD                           PARA CONTEXT
+====                           ==== =======
+'twas                             1 best of times 'twas the
+best                              1 It wasn't the best of times 'twas
+It                                1 It wasn't the best of
+of                                1 It wasn't the best of times 'twas the
+the                               1 It wasn't the best of times
+the                               1 of times 'twas the worst-of-times
+times                             1 the best of times 'twas the
+wasn't                            1 It wasn't the best of
+worst-of-times                    1 'twas the worst-of-times</code></pre>
+<p>Your output should have equivalent lines, but the contents of each line may not be identical! How your multimap copes with upper and lower case, and how you count the letters/words in the context, may affect your output. For example: you may try to balance words on either side of the context rather than characters, or you may wish to use more of the context if the word appears early in the paragraph. You do need to use the majority of the&nbsp;<code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">entry_length</code> for the context, and don't exceed it. Organize your output into neat columns using (f)printf, and label them.</p>
+<h3 id="testing-and-contracts" style="font-size: medium; font-variant: small-caps; text-decoration: underline; color: #000080;">Testing and contracts</h3>
+<p>As mentioned above, you should test your multimap. All the tests from A3 should be executed as one main testing program. These tests will not be re-evaluated in this assignment, only the ability to run them.</p>
+<p>Write a second <strong>separate</strong> testing program that will focus on the two new functions that were added to the multimap interface (<code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">mm_get_first_key</code> and <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">mm_get_next_key</code>). It should cover all of the same types of cases (typical, edge, invalid, etc.) as the original tests; however, to make it easier for the marker to identify the new tests, avoid unnecessarily repeating test cases.</p>
+<p>Write a third <strong>separate</strong> testing program that will test the KWIC processing code. In order to make it possible to test this code, you will need to divide the code into functions and expose the testable functions through a header file. Here are some examples of the functions you could write and test:</p>
+<ul>
+<li>finding and/or splitting words</li>
+<li>determining how many words before/after will fit into the context string</li>
+<li>building the context string (this may be part of the previous function)</li>
+<li>removing words with frequency greater than some value</li>
+</ul>
+<p>And others as appropriate. Functions that read from or write to files or stdout are <strong>not</strong> considered testable.</p>
+<p>Place the test harness in a header and source file. That is, there should be one header file that is included by all the tests, and a source file that contains the code that is used by all tests, such as the verify functions.</p>
+<p>All functions that are testable, and publicly exposed in an interface, must have appropriate contracts. This includes the new multimap functions and the KWIC processing functions. Your contracts for the rest of the multimap will not be re-evaluated.</p>
+<h3 id="notes-1" style="font-size: medium; font-variant: small-caps; text-decoration: underline; color: #000080;">Notes:</h3>
+<ul>
+<li>You will need to change the constants from A3's Multimap as follows. These will be defined in the multimap header file.</li>
+</ul>
+<div class="sourceCode" id="cb3" style="overflow: visible; margin: 1em 0;">
+<pre class="sourceCode c" style="background-color: #ffffd8; border-top: dotted thin black; border-bottom: dotted thin black; margin-right: 20px; margin-left: 20px; overflow: visible; margin: 0; padding: 1em 0.5em 1em 0.5em;" bgcolor="#FFFFD8"><code class="sourceCode c" style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: transparent; white-space: pre; overflow: visible; position: relative;"><span id="cb3-1" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="pp" style="color: #bc7a00;">#define MAX_KEY_LENGTH </span><span class="dv" style="color: #40a070;">31</span></span>
+<span id="cb3-2" style="{color: inherit; text-decoration: inherit; display: inline-block; line-height: 1.25} :empty{height:1.2em};"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="pp" style="color: #bc7a00;">#define MAX_VALUE_LENGTH </span><span class="dv" style="color: #40a070;">81</span></span></code></pre>
+</div>
+<ul>
+<li>In addition to the constants above, and the defaults given in <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">a4_main.c</code>, you can assume the following maximums:
+<ul>
+<li>The maximum paragraph length is 20000 characters.</li>
+<li>The maximum length of a stop list is 1000 words.</li>
+<li style="color: rgb(207, 42, 39);"><span style="color: rgb(207, 42, 39);">There are at most 100 entries (occurrences) for each word in the index.</span></li>
+</ul>
+</li>
+<li>The stop list file contains one word per line. Treat each line as a word; there is no error checking.</li>
+<li>You may use your multimap from A3, or the posted model solution. You can use the corresponding set of tests.</li>
+<li>You should only minimally modify the given <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">a4_main.c</code> file, to include your header file and call a function to start your program. This function must be defined in a different <code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">.c</code> file.</li>
+<li>Ensure the results appear in the correct order, particularly when the same word appears multiple times in the same paragraph. This may be done by changing your multimap (which will affect its tests) or by carefully processing the text when you are building the KWIC.</li>
+<li>Write a <strong><code style="font-family: Consolas, Courier, 'Courier New', monospace; background-color: #ffffe8; white-space: pre-wrap;" bgcolor="#FFFFE8">Makefile</code></strong> that compiles your source code, including the main program that builds the KWIC and the programs that run your tests. Give them all meaningful names. <span style="color: rgb(207, 42, 39);">A sample makefile is available for you to use and modify for your own submission.</span></li>
+<li>Submit a <strong>README</strong> file that describes each of the programs produced by your Makefile, and what they do. <!--
+* For this assignment you **must submit a README file**. Include in that file complete command lines that **the marker can easily copy and paste** to compile your KWIC main program **and** your two test main programs. Use `-o` with clang to give the programs different meaningful names. Optionally, you can include a `Makefile` that will compile all three programs, though that is optional. In that case simply running `make`
+--></li>
+</ul></body></html>

@@ -1,0 +1,6 @@
+all 
+these 
+words 
+are 
+stop 
+words
